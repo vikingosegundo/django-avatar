@@ -19,6 +19,7 @@ except ImproperlyConfigured:
     notification = None
 
 if "friends" in settings.INSTALLED_APPS:
+    from friends.models import Friendship
     friends = True
 else:
     friends = False
@@ -43,6 +44,7 @@ def _get_next(request):
     return next
 
 def change(request, extra_context={}, next_override=None):
+    print "manuel change"
     avatars = Avatar.objects.filter(user=request.user).order_by('-primary')
     if avatars.count() > 0:
         avatar = avatars[0]
