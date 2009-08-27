@@ -12,17 +12,17 @@ from django.db.models import get_app
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
+
 try:
     notification = get_app('notification')
 except ImproperlyConfigured:
     notification = None
 
-try:
-    from friends.models import Friendship
+if "friends" in settings.INSTALLED_APPS:
     friends = True
-except ImportError:
+else:
     friends = False
-
+    
 def _get_next(request):
     """
     The part that's the least straightforward about views in this module is how they 
@@ -76,7 +76,8 @@ def change(request, extra_context={}, next_override=None):
                 message=_("Successfully updated your avatar."))
         if updated and notification:
             notification.send([request.user], "avatar_updated", {"user": request.user, "avatar": avatar})
-            notification.send((x['friend'] for x in Friendship.objects.friends_for_user(request.user)), "avatar_friend_updated", {"user": request.user, "avatar": avatar})
+            if friends:
+                notification.send((x['friend'] for x in Friendship.objects.friends_for_user(request.user)), "avatar_friend_updated", {"user": request.user, "avatar": avatar})
         return HttpResponseRedirect(next_override or _get_next(request))
     return render_to_response(
         'avatar/change.html',
